@@ -1,12 +1,13 @@
 #[derive(Debug, PartialEq)]
 pub enum Opcode {
-    END,
+    ZERO,
     ILLEGAL,
     LOAD,
     ADD,
     SUB,
     MUL,
     DIV,
+    JMP,
 }
 
 #[allow(dead_code)]
@@ -23,12 +24,13 @@ impl Instruction {
 impl From<u8> for Opcode {
     fn from(byte: u8) -> Self {
         return match byte {
-            0 => Self::END,
+            0 => Self::ZERO,
             1 => Self::LOAD,
             2 => Self::ADD,
             3 => Self::SUB,
             4 => Self::MUL,
             5 => Self::DIV,
+            6 => Self::JMP,
             _ => Self::ILLEGAL,
         };
     }
@@ -41,8 +43,8 @@ mod tests {
     #[test]
     fn test_create_instrunction() {
         let inst = Instruction {
-            opcode: Opcode::END,
+            opcode: Opcode::ZERO,
         };
-        assert_eq!(inst.opcode, Opcode::END);
+        assert_eq!(inst.opcode, Opcode::ZERO);
     }
 }

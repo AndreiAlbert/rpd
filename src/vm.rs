@@ -49,7 +49,7 @@ impl VM {
                 let register1 = self.registers[self.get_next_byte() as usize];
                 let register2 = self.registers[self.get_next_byte() as usize];
                 self.registers[source_register] = register1 - register2;
-            }man happy
+            }
             Opcode::MUL => {
                 println!("mul encountered");
                 let source_register = self.get_next_byte() as usize;
@@ -64,8 +64,12 @@ impl VM {
                 self.registers[source_register] = register1 / register2;
                 self.remainder = register1 % register2
             }
-            Opcode::END => {
-                return true;
+            Opcode::JMP => {
+                let target = self.registers[self.get_next_byte() as usize] as usize;
+                self.program_counter = target;
+            }
+            Opcode::ZERO => {
+                return false;
             }
             Opcode::ILLEGAL => {
                 panic!("Unrecognized instrunction");
@@ -157,5 +161,15 @@ mod tests {
         test_vm.run();
         assert_eq!(test_vm.registers[3], 3);
         assert_eq!(test_vm.remainder, 1);
+    }
+
+    #[test]
+    fn test_jump_inst() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 1;
+        let test_bytes = vec![6, 0, 0, 0, 0];
+        test_vm.program = test_bytes;
+        test_vm.run();
+        assert_eq!(test_vm.program_counter, 1);
     }
 }
