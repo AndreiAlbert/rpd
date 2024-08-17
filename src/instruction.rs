@@ -8,6 +8,8 @@ pub enum Opcode {
     MUL,
     DIV,
     JMP,
+    EQ,
+    JEQ,
 }
 
 #[allow(dead_code)]
@@ -31,6 +33,8 @@ impl From<u8> for Opcode {
             4 => Self::MUL,
             5 => Self::DIV,
             6 => Self::JMP,
+            7 => Self::EQ,
+            8 => Self::JEQ,
             _ => Self::ILLEGAL,
         };
     }

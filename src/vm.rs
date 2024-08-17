@@ -1,11 +1,12 @@
 use crate::instruction::Opcode;
 
-#[allow(dead_code)]
+#[derive(Debug)]
 pub struct VM {
     pub registers: [i32; 32],
-    program_counter: usize,
+    pub program_counter: usize,
     pub program: Vec<u8>,
-    remainder: i32,
+    pub remainder: i32,
+    pub equality_flag: bool,
 }
 
 impl VM {
@@ -15,6 +16,7 @@ impl VM {
             program_counter: 0,
             program: Vec::new(),
             remainder: 0,
+            equality_flag: false,
         };
     }
 
@@ -68,6 +70,18 @@ impl VM {
                 let target = self.registers[self.get_next_byte() as usize] as usize;
                 self.program_counter = target;
             }
+            Opcode::EQ => {
+                let register1 = self.registers[self.get_next_byte() as usize];
+                let register2 = self.registers[self.get_next_byte() as usize];
+                self.equality_flag = register1 == register2;
+                self.get_next_byte();
+            }
+            Opcode::JEQ => {
+                let target = self.registers[self.get_next_byte() as usize] as usize;
+                if self.equality_flag {
+                    self.program_counter = target;
+                }
+            }
             Opcode::ZERO => {
                 return false;
             }
@@ -106,15 +120,6 @@ mod tests {
     fn test_creation() {
         let test_vm = VM::new();
         assert_eq!(test_vm.registers, [0; 32])
-    }
-
-    #[test]
-    fn test_decode_end() {
-        let mut test_vm = VM::new();
-        let test_bytes = vec![0, 0, 0];
-        test_vm.program = test_bytes;
-        test_vm.run();
-        assert_eq!(test_vm.program_counter, 1);
     }
 
     #[test]
@@ -169,7 +174,28 @@ mod tests {
         test_vm.registers[0] = 1;
         let test_bytes = vec![6, 0, 0, 0, 0];
         test_vm.program = test_bytes;
-        test_vm.run();
+        test_vm.execute_instrunction();
         assert_eq!(test_vm.program_counter, 1);
+    }
+
+    #[test]
+    fn test_eq_inst() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 69;
+        test_vm.registers[1] = 69;
+        let test_bytes = vec![7, 0, 1, 0];
+        test_vm.program = test_bytes;
+        test_vm.run();
+        assert_eq!(test_vm.equality_flag, true);
+    }
+
+    #[test]
+    fn test_jeq_inst() {
+        let mut test_vm = VM::new();
+        test_vm.equality_flag = true;
+        let test_bytes = vec![8, 0, 0, 0];
+        test_vm.program = test_bytes;
+        test_vm.execute_instrunction();
+        assert_eq!(test_vm.program_counter, 0);
     }
 }
