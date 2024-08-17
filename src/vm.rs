@@ -113,6 +113,25 @@ impl VM {
     }
 }
 
+// NOTE i love this
+#[allow(unused)]
+impl std::fmt::Display for VM {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "--------Value of registers---------\n");
+        for (index, value) in self.registers.iter().enumerate() {
+            write!(f, "Value of register {}: {}\n", index, value);
+        }
+        write!(f, "------------------------------------\n");
+        write!(f, "Value of program counter: {}\n", self.program_counter);
+        write!(f, "------------------------------------\n");
+        write!(f, "Program: ");
+        for value in &self.program {
+            write!(f, "{} ", value);
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
