@@ -108,7 +108,6 @@ impl VM {
     fn get_next_2_bytes(&mut self) -> u16 {
         let high_part = self.get_next_byte() as u16;
         let low_part = self.get_next_byte() as u16;
-        println!("{:08b}", high_part << 8);
         return (high_part << 8) | low_part;
     }
 }
@@ -128,7 +127,7 @@ impl std::fmt::Display for VM {
         for value in &self.program {
             write!(f, "{} ", value);
         }
-        Ok(())
+        return Ok(());
     }
 }
 
