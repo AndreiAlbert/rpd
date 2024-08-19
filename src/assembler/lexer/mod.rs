@@ -1,4 +1,4 @@
-use std::fmt::Write;
+use std::fmt::{write, Display, Write};
 
 use token::Token;
 
@@ -24,6 +24,19 @@ pub struct LexerError {
     line: usize,
     column: usize,
     context: Option<String>,
+}
+
+#[allow(dead_code)]
+impl Display for LexerError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ERROR: {} on line {} column {}",
+            self.message, self.line, self.column,
+        )
+        .unwrap();
+        Ok(())
+    }
 }
 
 impl LexerError {
