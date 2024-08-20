@@ -3,18 +3,16 @@ pub mod instruction;
 pub mod repl;
 pub mod vm;
 
-use assembler::lexer::Lexer;
+use assembler::Assembler;
 
 fn main() {
-    let mut lx = Lexer::new("    load $1\n dsfs".to_string());
-    match lx.tokenize() {
-        Ok(tokens) => {
-            println!("Tokenization was successfull");
-            println!("{:?}", tokens);
-        }
-        Err(errors) => {
-            println!("Errors encountered");
-            println!("{:?}", errors);
-        }
-    }
+    let program = r###"
+        load $1 #1
+        load $2 #2
+        add $3 $1 $2
+        load $4 #3
+        eq $4 $3
+    "###
+    .to_string();
+    Assembler::run(program);
 }

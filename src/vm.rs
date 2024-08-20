@@ -1,3 +1,5 @@
+use std::fmt::write;
+
 use crate::instruction::Opcode;
 
 #[derive(Debug)]
@@ -11,13 +13,24 @@ pub struct VM {
 
 impl VM {
     pub fn new() -> VM {
-        return VM {
+        let vm = VM {
+            program: Vec::new(),
             registers: [0; 32],
             program_counter: 0,
-            program: Vec::new(),
             remainder: 0,
             equality_flag: false,
         };
+        return vm;
+    }
+
+    pub fn new_with_program(program: Vec<u8>) -> VM {
+        VM {
+            program,
+            registers: [0; 32],
+            program_counter: 0,
+            remainder: 0,
+            equality_flag: false,
+        }
     }
 
     pub fn run(&mut self) {
@@ -38,22 +51,18 @@ impl VM {
                 self.registers[register] = value as i32;
             }
             Opcode::ADD => {
-                println!("add encountered");
                 let source_register = self.get_next_byte() as usize;
                 let register1 = self.registers[self.get_next_byte() as usize];
                 let register2 = self.registers[self.get_next_byte() as usize];
-                println!("values of reg1 {} and reg2 {}", register1, register2);
                 self.registers[source_register] = register1 + register2
             }
             Opcode::SUB => {
-                println!("sub encountered");
                 let source_register = self.get_next_byte() as usize;
                 let register1 = self.registers[self.get_next_byte() as usize];
                 let register2 = self.registers[self.get_next_byte() as usize];
                 self.registers[source_register] = register1 - register2;
             }
             Opcode::MUL => {
-                println!("mul encountered");
                 let source_register = self.get_next_byte() as usize;
                 let register1 = self.registers[self.get_next_byte() as usize];
                 let register2 = self.registers[self.get_next_byte() as usize];
@@ -123,6 +132,7 @@ impl std::fmt::Display for VM {
         write!(f, "------------------------------------\n");
         write!(f, "Value of program counter: {}\n", self.program_counter);
         write!(f, "------------------------------------\n");
+        write!(f, "Equality flag: {}\n", self.equality_flag);
         write!(f, "Program: ");
         for value in &self.program {
             write!(f, "{} ", value);

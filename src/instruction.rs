@@ -1,7 +1,6 @@
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Opcode {
     ZERO,
-    ILLEGAL,
     LOAD,
     ADD,
     SUB,
@@ -10,6 +9,7 @@ pub enum Opcode {
     JMP,
     EQ,
     JEQ,
+    ILLEGAL,
 }
 
 #[allow(dead_code)]

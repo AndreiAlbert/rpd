@@ -1,10 +1,10 @@
-use std::fmt::{write, Display, Write};
+use std::fmt::{Display, Write};
 
 use token::Token;
 
 use crate::instruction::Opcode;
 
-mod token;
+pub mod token;
 
 #[allow(dead_code)]
 pub struct Lexer {
@@ -26,15 +26,14 @@ pub struct LexerError {
     context: Option<String>,
 }
 
-#[allow(dead_code)]
+#[allow(unused)]
 impl Display for LexerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "ERROR: {} on line {} column {}",
             self.message, self.line, self.column,
-        )
-        .unwrap();
+        );
         Ok(())
     }
 }
@@ -121,7 +120,7 @@ impl Lexer {
                     None
                 }
             }
-            '\0' => None,
+            '\0' => Some(Token::Op { code: Opcode::ZERO }),
             _ => {
                 self.record_error(&format!("Unexpected character: {}", self.current_char));
                 self.read_char();
@@ -151,7 +150,6 @@ impl Lexer {
             || self.current_char == '\n'
             || self.current_char == '\r'
         {
-            println!("skipping whitespace");
             self.read_char();
         }
     }
