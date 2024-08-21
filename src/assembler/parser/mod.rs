@@ -115,6 +115,13 @@ impl Parser {
                 }
                 (op, None, None)
             }
+            Opcode::INC | Opcode::DEC | Opcode::ALLOC => {
+                let op = self.next_token();
+                if !self.check_if_operand(&op) {
+                    return Err(format!("Unexpeted operand for inc/dec/alloc"));
+                }
+                (op, None, None)
+            }
             Opcode::ZERO => (None, None, None),
             _ => (None, None, None),
         };

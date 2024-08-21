@@ -91,6 +91,11 @@ impl Lexer {
                     "eq" => Some(Token::Op { code: Opcode::EQ }),
                     "jmp" => Some(Token::Op { code: Opcode::JMP }),
                     "jeq" => Some(Token::Op { code: Opcode::JEQ }),
+                    "alloc" => Some(Token::Op {
+                        code: Opcode::ALLOC,
+                    }),
+                    "inc" => Some(Token::Op { code: Opcode::INC }),
+                    "dec" => Some(Token::Op { code: Opcode::DEC }),
                     _ => {
                         self.record_error(&format!("Unexpected word: {}", word));
                         None
@@ -292,6 +297,44 @@ mod tests {
         assert_eq!(tokens.len(), 2);
         assert_eq!(tokens[0], Token::Op { code: Opcode::JEQ });
         assert_eq!(tokens[1], Token::Register { reg_number: 1 });
+    }
+
+    #[test]
+    fn test_tokenize_alloc() {
+        let mut lx = Lexer::new("alloc $0".to_string());
+        let result_tokenization = lx.tokenize();
+        assert!(result_tokenization.is_ok());
+        let tokens = result_tokenization.unwrap();
+        assert_eq!(tokens.len(), 2);
+        assert_eq!(
+            tokens[0],
+            Token::Op {
+                code: Opcode::ALLOC
+            }
+        );
+        assert_eq!(tokens[1], Token::Register { reg_number: 0 });
+    }
+
+    #[test]
+    fn test_tokenize_inc() {
+        let mut lx = Lexer::new("inc $0".to_string());
+        let result_tokenization = lx.tokenize();
+        assert!(result_tokenization.is_ok());
+        let tokens = result_tokenization.unwrap();
+        assert_eq!(tokens.len(), 2);
+        assert_eq!(tokens[0], Token::Op { code: Opcode::INC });
+        assert_eq!(tokens[1], Token::Register { reg_number: 0 });
+    }
+
+    #[test]
+    fn test_tokenize_dec() {
+        let mut lx = Lexer::new("dec $0".to_string());
+        let result_tokenization = lx.tokenize();
+        assert!(result_tokenization.is_ok());
+        let tokens = result_tokenization.unwrap();
+        assert_eq!(tokens.len(), 2);
+        assert_eq!(tokens[0], Token::Op { code: Opcode::DEC });
+        assert_eq!(tokens[1], Token::Register { reg_number: 0 });
     }
 
     #[test]

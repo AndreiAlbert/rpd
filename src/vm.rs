@@ -99,6 +99,14 @@ impl VM {
                 let new_end_heap = self.heap.len() as i32 + size;
                 self.heap.resize(new_end_heap as usize, 0);
             }
+            Opcode::INC => {
+                let register = self.get_next_byte() as usize;
+                self.registers[register] += 1;
+            }
+            Opcode::DEC => {
+                let register = self.get_next_byte() as usize;
+                self.registers[register] -= 1;
+            }
             Opcode::ZERO => {
                 return false;
             }
@@ -248,5 +256,22 @@ mod tests {
         test_vm.program = [9, 0, 0].to_vec();
         test_vm.run();
         assert_eq!(test_vm.heap.len(), 32);
+    }
+
+    #[test]
+    fn test_inc_inst() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 68;
+        test_vm.program = [10, 0, 0].to_vec();
+        test_vm.run();
+        assert_eq!(test_vm.registers[0], 69);
+    }
+    #[test]
+    fn test_dec_inst() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 70;
+        test_vm.program = [11, 0, 0].to_vec();
+        test_vm.run();
+        assert_eq!(test_vm.registers[0], 69);
     }
 }
