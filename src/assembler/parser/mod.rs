@@ -4,13 +4,6 @@ use super::lexer::token::Token;
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct Parser {
-    tokens: Vec<Token>,
-    current: usize,
-}
-
-#[allow(dead_code)]
-#[derive(Debug)]
 pub struct AssemblyInstruction {
     opcode: Token,
     operand1: Option<Token>,
@@ -33,6 +26,9 @@ impl AssemblyInstruction {
                 None => {}
             };
         }
+        while bytes.len() < 4 {
+            bytes.push(0);
+        }
         bytes
     }
 
@@ -49,6 +45,13 @@ impl AssemblyInstruction {
             _ => {}
         };
     }
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
+pub struct Parser {
+    tokens: Vec<Token>,
+    current: usize,
 }
 
 #[allow(dead_code)]
@@ -69,6 +72,7 @@ impl Parser {
         if !errors.is_empty() {
             return Err(errors);
         }
+        println!("assembly instructions: {:?}", instructions);
         Ok(instructions)
     }
 
@@ -154,5 +158,209 @@ impl Parser {
 
     fn is_opcode(&self, token: &Token) -> bool {
         matches!(token, Token::Op { .. })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Token;
+    use crate::{assembler::parser::Parser, instruction::Opcode};
+
+    #[test]
+    fn test_parse_load() {
+        let tokens = [
+            Token::Op { code: Opcode::LOAD },
+            Token::Register { reg_number: 1 },
+            Token::IntegerOp { value: 10 },
+        ];
+        let mut parser = Parser::new(tokens.to_vec());
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [1, 1, 0, 10]);
+    }
+
+    #[test]
+    fn test_parse_add() {
+        let tokens = [
+            Token::Op { code: Opcode::ADD },
+            Token::Register { reg_number: 2 },
+            Token::Register { reg_number: 0 },
+            Token::Register { reg_number: 1 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [2, 2, 0, 1])
+    }
+
+    #[test]
+    fn test_parse_sub() {
+        let tokens = [
+            Token::Op { code: Opcode::SUB },
+            Token::Register { reg_number: 2 },
+            Token::Register { reg_number: 0 },
+            Token::Register { reg_number: 1 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [3, 2, 0, 1])
+    }
+
+    #[test]
+    fn test_parse_mul() {
+        let tokens = [
+            Token::Op { code: Opcode::MUL },
+            Token::Register { reg_number: 2 },
+            Token::Register { reg_number: 0 },
+            Token::Register { reg_number: 1 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [4, 2, 0, 1])
+    }
+
+    #[test]
+    fn test_parse_div() {
+        let tokens = [
+            Token::Op { code: Opcode::DIV },
+            Token::Register { reg_number: 2 },
+            Token::Register { reg_number: 0 },
+            Token::Register { reg_number: 1 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [5, 2, 0, 1])
+    }
+
+    #[test]
+    fn test_parse_jmp() {
+        let tokens = [
+            Token::Op { code: Opcode::JMP },
+            Token::Register { reg_number: 10 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [6, 10, 0, 0]);
+    }
+
+    #[test]
+    fn test_parse_eq() {
+        let tokens = [
+            Token::Op { code: Opcode::EQ },
+            Token::Register { reg_number: 1 },
+            Token::Register { reg_number: 2 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [7, 1, 2, 0]);
+    }
+
+    #[test]
+    fn test_parse_jeq() {
+        let tokens = [
+            Token::Op { code: Opcode::JEQ },
+            Token::Register { reg_number: 5 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [8, 5, 0, 0]);
+    }
+
+    #[test]
+    fn test_parse_alloc() {
+        let tokens = [
+            Token::Op {
+                code: Opcode::ALLOC,
+            },
+            Token::Register { reg_number: 5 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [9, 5, 0, 0]);
+    }
+
+    #[test]
+    fn test_parse_inc() {
+        let tokens = [
+            Token::Op { code: Opcode::INC },
+            Token::Register { reg_number: 5 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [10, 5, 0, 0]);
+    }
+
+    #[test]
+    fn test_parse_dec() {
+        let tokens = [
+            Token::Op { code: Opcode::DEC },
+            Token::Register { reg_number: 5 },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), 1);
+        let bytes = insts[0].to_bytes();
+        assert_eq!(bytes.len(), 4);
+        assert_eq!(bytes, [11, 5, 0, 0]);
     }
 }
