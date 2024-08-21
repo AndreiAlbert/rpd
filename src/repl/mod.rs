@@ -1,3 +1,4 @@
+use crate::assembler::Assembler;
 use crate::vm::VM;
 use std;
 use std::io::Write;
@@ -30,9 +31,9 @@ impl REPL {
             if let Err(e) = stdin.read_line(&mut buffer) {
                 eprint!("Failed to read line {}", e);
             }
-            let buffer = buffer.trim();
             self.history.push(buffer.to_string());
-            match buffer {
+            let buffer_trimmed = buffer.trim();
+            match buffer_trimmed {
                 ".exit" => {
                     println!("Have a good day ^^");
                     std::process::exit(0);
@@ -46,21 +47,15 @@ impl REPL {
                     println!("{}", self.vm);
                 }
                 _ => {
-                    let bytes = self.parse_hex(buffer);
-                    match bytes {
-                        Ok(bytes) => {
-                            self.vm.program = bytes;
-                            self.vm.run();
-                        }
-                        Err(e) => {
-                            eprintln!("Could not parse bytes: {}", e)
-                        }
-                    }
+                    buffer.push('\n');
+                    let bytes = Assembler::parse_to_bytes(buffer);
+                    self.vm.append_to_program(bytes);
+                    self.vm.run();
                 }
             }
         }
     }
-
+    #[allow(dead_code)]
     fn parse_hex(&mut self, i: &str) -> Result<Vec<u8>, ParseIntError> {
         let split = i.split(" ").collect::<Vec<&str>>();
         let mut results: Vec<u8> = vec![];

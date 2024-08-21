@@ -1,5 +1,3 @@
-use std::fmt::write;
-
 use crate::instruction::Opcode;
 
 #[derive(Debug)]
@@ -119,6 +117,12 @@ impl VM {
         let low_part = self.get_next_byte() as u16;
         return (high_part << 8) | low_part;
     }
+
+    pub fn append_to_program(&mut self, prg: Vec<u8>) {
+        for p in prg {
+            self.program.push(p);
+        }
+    }
 }
 
 // NOTE i love this
@@ -221,7 +225,7 @@ mod tests {
     fn test_jeq_inst() {
         let mut test_vm = VM::new();
         test_vm.equality_flag = true;
-        let test_bytes = vec![8, 0, 0, 0];
+        let test_bytes = vec![8, 1, 0];
         test_vm.program = test_bytes;
         test_vm.execute_instrunction();
         assert_eq!(test_vm.program_counter, 0);
