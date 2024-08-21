@@ -1,3 +1,5 @@
+use std::usize;
+
 use crate::instruction::Opcode;
 
 #[derive(Debug)]
@@ -7,6 +9,7 @@ pub struct VM {
     pub program: Vec<u8>,
     pub remainder: i32,
     pub equality_flag: bool,
+    pub heap: Vec<u8>,
 }
 
 impl VM {
@@ -17,6 +20,7 @@ impl VM {
             program_counter: 0,
             remainder: 0,
             equality_flag: false,
+            heap: Vec::new(),
         };
         return vm;
     }
@@ -28,6 +32,7 @@ impl VM {
             program_counter: 0,
             remainder: 0,
             equality_flag: false,
+            heap: Vec::new(),
         }
     }
 
@@ -88,6 +93,11 @@ impl VM {
                 if self.equality_flag {
                     self.program_counter = target;
                 }
+            }
+            Opcode::ALLOC => {
+                let size = self.registers[self.get_next_byte() as usize];
+                let new_end_heap = self.heap.len() as i32 + size;
+                self.heap.resize(new_end_heap as usize, 0);
             }
             Opcode::ZERO => {
                 return false;
@@ -229,5 +239,14 @@ mod tests {
         test_vm.program = test_bytes;
         test_vm.execute_instrunction();
         assert_eq!(test_vm.program_counter, 0);
+    }
+
+    #[test]
+    fn test_alloc_inst() {
+        let mut test_vm = VM::new();
+        test_vm.registers[0] = 32;
+        test_vm.program = [9, 0, 0].to_vec();
+        test_vm.run();
+        assert_eq!(test_vm.heap.len(), 32);
     }
 }

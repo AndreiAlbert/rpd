@@ -9,6 +9,7 @@ pub enum Opcode {
     JMP,
     EQ,
     JEQ,
+    ALLOC,
     ILLEGAL,
 }
 
@@ -35,6 +36,7 @@ impl From<u8> for Opcode {
             6 => Self::JMP,
             7 => Self::EQ,
             8 => Self::JEQ,
+            9 => Self::ALLOC,
             _ => Self::ILLEGAL,
         };
     }
