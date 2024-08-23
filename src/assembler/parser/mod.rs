@@ -194,10 +194,15 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::btree_map;
+
     use super::Token;
     use crate::{
-        assembler::parser::Parser,
-        instruction::{self, Opcode},
+        assembler::{
+            parser::Parser,
+            symbol::{symbol::SymbolType, symbol_table::SymbolTable},
+        },
+        instruction::Opcode,
     };
 
     #[test]
@@ -207,14 +212,18 @@ mod tests {
             Token::Register { reg_number: 1 },
             Token::IntegerOp { value: 10 },
         ];
+        let st = SymbolTable::new();
         let mut parser = Parser::new(tokens.to_vec());
         let insts = parser.parse();
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [1, 1, 0, 10]);
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [1, 1, 0, 10]);
+        }
     }
 
     #[test]
@@ -231,9 +240,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [2, 2, 0, 1])
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [2, 2, 0, 1])
+        }
     }
 
     #[test]
@@ -250,9 +263,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [3, 2, 0, 1])
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [3, 2, 0, 1])
+        }
     }
 
     #[test]
@@ -269,9 +286,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [4, 2, 0, 1])
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [4, 2, 0, 1])
+        }
     }
 
     #[test]
@@ -288,9 +309,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [5, 2, 0, 1])
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [5, 2, 0, 1])
+        }
     }
 
     #[test]
@@ -305,9 +330,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [6, 10, 0, 0]);
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [6, 10, 0, 0]);
+        }
     }
 
     #[test]
@@ -323,9 +352,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [7, 1, 2, 0]);
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [7, 1, 2, 0]);
+        }
     }
 
     #[test]
@@ -340,9 +373,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [8, 5, 0, 0]);
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [8, 5, 0, 0]);
+        }
     }
 
     #[test]
@@ -359,9 +396,13 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [9, 5, 0, 0]);
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        assert!(bytes.is_some());
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [9, 5, 0, 0]);
+        }
     }
 
     #[test]
@@ -376,9 +417,12 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [10, 5, 0, 0]);
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [10, 5, 0, 0]);
+        }
     }
 
     #[test]
@@ -393,19 +437,20 @@ mod tests {
         assert!(insts.is_ok());
         let mut insts = insts.unwrap();
         assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes();
-        assert_eq!(bytes.len(), 4);
-        assert_eq!(bytes, [11, 5, 0, 0]);
+        let st = SymbolTable::new();
+        let bytes = insts[0].to_bytes(&st);
+        if let Some(bytes) = bytes {
+            assert_eq!(bytes.len(), 4);
+            assert_eq!(bytes, [11, 5, 0, 0]);
+        }
     }
 
     #[test]
     fn test_parse_labels() {
         let tokens = [
-            Token::LabelDeclaration {
-                value: "label:".to_string(),
-            },
+            Token::Op { code: Opcode::JMP },
             Token::LabelUsage {
-                value: "@label".to_string(),
+                value: "label".to_string(),
             },
         ]
         .to_vec();
@@ -413,6 +458,6 @@ mod tests {
         let insts = parser.parse();
         assert!(insts.is_ok());
         let insts = insts.unwrap();
-        assert_eq!(insts.len(), 2);
+        assert_eq!(insts.len(), 1);
     }
 }

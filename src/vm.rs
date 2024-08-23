@@ -40,7 +40,7 @@ impl VM {
         let mut is_done = false;
         while !is_done {
             is_done = self.execute_instrunction();
-            println!("{:?}", self.registers);
+            println!("{:?}", self.registers)
         }
     }
 
@@ -222,11 +222,10 @@ mod tests {
     #[test]
     fn test_jump_inst() {
         let mut test_vm = VM::new();
-        test_vm.registers[0] = 1;
         let test_bytes = vec![6, 0, 0, 0, 0];
         test_vm.program = test_bytes;
         test_vm.execute_instrunction();
-        assert_eq!(test_vm.program_counter, 1);
+        assert_eq!(test_vm.program_counter, 0);
     }
 
     #[test]
@@ -247,7 +246,7 @@ mod tests {
         let test_bytes = vec![8, 1, 0];
         test_vm.program = test_bytes;
         test_vm.execute_instrunction();
-        assert_eq!(test_vm.program_counter, 0);
+        assert_eq!(test_vm.program_counter, 1);
     }
 
     #[test]

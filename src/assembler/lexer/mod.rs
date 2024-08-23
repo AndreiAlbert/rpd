@@ -371,14 +371,14 @@ mod tests {
         assert_eq!(tokens.len(), 7);
         let expected = [
             Token::LabelDeclaration {
-                value: "test_label:".to_string(),
+                value: "test_label".to_string(),
             },
             Token::Op { code: Opcode::LOAD },
             Token::Register { reg_number: 1 },
             Token::IntegerOp { value: 10 },
             Token::Op { code: Opcode::JMP },
             Token::LabelUsage {
-                value: "@test_label".to_string(),
+                value: "test_label".to_string(),
             },
             Token::Op { code: Opcode::ZERO },
         ];
