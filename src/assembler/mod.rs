@@ -62,26 +62,11 @@ impl Assembler {
         println!("{:?}", bytes);
         let mut vm = VM::new_with_program(bytes);
         vm.run();
+        println!("{}", vm);
     }
 
-    pub fn parse_to_bytes(program: String) -> Vec<u8> {
-        let mut lexer = Lexer::new(program);
-        let tokens = match lexer.tokenize() {
-            Ok(tokens) => tokens,
-            Err(errs) => panic!("Lexing error: {:?}", errs),
-        };
-        let mut parser = Parser::new(tokens);
-        let instructions = match parser.parse() {
-            Ok(insts) => insts,
-            Err(errors) => {
-                panic!("Parser errors: {:?} ", errors);
-            }
-        };
-
-        let bytes: Vec<u8> = vec![];
-        for instruction in instructions {
-            println!("{:?}", instruction);
-        }
-        bytes
+    //TODO fix this
+    pub fn parse_to_bytes(_program: String) -> Vec<u8> {
+        todo!();
     }
 }

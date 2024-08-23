@@ -1,6 +1,5 @@
-use std::usize;
-
 use crate::instruction::Opcode;
+use std::usize;
 
 #[derive(Debug)]
 pub struct VM {
