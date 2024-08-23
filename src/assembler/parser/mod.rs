@@ -1,38 +1,50 @@
 use crate::instruction::Opcode;
 
-use super::lexer::token::Token;
+use super::{lexer::token::Token, symbol::symbol_table::SymbolTable};
 
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct AssemblyInstruction {
-    opcode: Token,
+    opcode: Option<Token>,
+    pub label: Option<Token>,
     operand1: Option<Token>,
     operand2: Option<Token>,
     operand3: Option<Token>,
 }
 
 impl AssemblyInstruction {
-    pub fn to_bytes(&mut self) -> Vec<u8> {
+    pub fn to_bytes(&mut self, symbol_table: &SymbolTable) -> Option<Vec<u8>> {
+        if let None = self.opcode {
+            return None;
+        }
         let mut bytes: Vec<u8> = vec![];
-        match self.opcode {
-            Token::Op { code } => match code {
-                _ => bytes.push(code as u8),
-            },
-            _ => panic!("expected opcode"),
-        };
-        for op in vec![self.operand1, self.operand2, self.operand3] {
+        if let Some(token) = self.opcode.clone() {
+            match token {
+                Token::Op { code } => match code {
+                    _ => bytes.push(code as u8),
+                },
+
+                _ => {}
+            };
+        }
+        for op in vec![
+            self.label.clone(),
+            self.operand1.clone(),
+            self.operand2.clone(),
+            self.operand3.clone(),
+        ] {
             match op {
-                Some(op) => AssemblyInstruction::extract_operands(op, &mut bytes),
+                Some(op) => AssemblyInstruction::extract_operands(op, &mut bytes, &symbol_table),
                 None => {}
             };
         }
         while bytes.len() < 4 {
             bytes.push(0);
         }
-        bytes
+        Some(bytes)
     }
 
-    fn extract_operands(op: Token, bytes: &mut Vec<u8>) {
+    fn extract_operands(op: Token, bytes: &mut Vec<u8>, st: &SymbolTable) {
         match op {
             Token::Register { reg_number } => bytes.push(reg_number),
             Token::IntegerOp { value } => {
@@ -42,6 +54,12 @@ impl AssemblyInstruction {
                 bytes.push(high_part as u8);
                 bytes.push(low_part as u8);
             }
+            Token::LabelUsage { value } => {
+                if let Some(offset) = st.get_symbol_value(&value) {
+                    bytes.push(offset);
+                }
+            }
+
             _ => {}
         };
     }
@@ -72,21 +90,30 @@ impl Parser {
         if !errors.is_empty() {
             return Err(errors);
         }
-        println!("assembly instructions: {:?}", instructions);
         Ok(instructions)
     }
 
     fn parse_instruction(&mut self) -> Result<AssemblyInstruction, String> {
-        let opcode_token = self
+        let token = self
             .next_token()
             .ok_or("expected an opcode but found none")?;
 
-        let opcode = match opcode_token {
+        if let Token::LabelDeclaration { .. } = token {
+            return Ok(AssemblyInstruction {
+                opcode: None,
+                operand1: None,
+                operand2: None,
+                operand3: None,
+                label: Some(token),
+            });
+        }
+
+        let opcode = match token {
             Token::Op { code } => code,
-            _ => return Err(format!("expected an opcode but found {:?}", opcode_token)),
+            _ => return Err(format!("expected an opcode but found {:?}", token)),
         };
 
-        let (operand1, operand2, operand3) = match opcode {
+        let (operand1, operand2, operand3, label) = match opcode {
             Opcode::ADD | Opcode::SUB | Opcode::DIV | Opcode::MUL => {
                 let op1 = self.next_token();
                 let op2 = self.next_token();
@@ -98,7 +125,7 @@ impl Parser {
                 } else if !self.check_if_operand(&op3) {
                     return Err(format!("Unexpected operand for add instruction {:?}", op3));
                 } else {
-                    (op1, op2, op3)
+                    (op1, op2, op3, None)
                 }
             }
             Opcode::LOAD | Opcode::EQ => {
@@ -109,7 +136,7 @@ impl Parser {
                 } else if !self.check_if_operand(&op2) {
                     return Err(format!("Unexpected operand for add instruction {:?}", op2));
                 } else {
-                    (op1, op2, None)
+                    (op1, op2, None, None)
                 }
             }
             Opcode::JMP | Opcode::JEQ => {
@@ -117,30 +144,34 @@ impl Parser {
                 if !self.check_if_operand(&op) {
                     return Err(format!("unexpected bla bla {:?}", op));
                 }
-                (op, None, None)
+                (None, None, None, op)
             }
             Opcode::INC | Opcode::DEC | Opcode::ALLOC => {
                 let op = self.next_token();
                 if !self.check_if_operand(&op) {
                     return Err(format!("Unexpeted operand for inc/dec/alloc"));
                 }
-                (op, None, None)
+                (op, None, None, None)
             }
-            Opcode::ZERO => (None, None, None),
-            _ => (None, None, None),
+            Opcode::ZERO => (None, None, None, None),
+            _ => (None, None, None, None),
         };
 
         Ok(AssemblyInstruction {
-            opcode: opcode_token,
+            opcode: Some(token),
             operand1,
             operand2,
             operand3,
+            label,
         })
     }
 
     fn check_if_operand(&self, token: &Option<Token>) -> bool {
         if let Some(token) = token {
-            return matches!(token, Token::IntegerOp { .. } | Token::Register { .. });
+            return matches!(
+                token,
+                Token::IntegerOp { .. } | Token::Register { .. } | Token::LabelUsage { .. }
+            );
         } else {
             return false;
         }
@@ -148,7 +179,7 @@ impl Parser {
 
     pub fn next_token(&mut self) -> Option<Token> {
         if self.current < self.tokens.len() {
-            let token = self.tokens[self.current];
+            let token = self.tokens[self.current].clone();
             self.current += 1;
             Some(token)
         } else {
@@ -164,7 +195,10 @@ impl Parser {
 #[cfg(test)]
 mod tests {
     use super::Token;
-    use crate::{assembler::parser::Parser, instruction::Opcode};
+    use crate::{
+        assembler::parser::Parser,
+        instruction::{self, Opcode},
+    };
 
     #[test]
     fn test_parse_load() {
@@ -362,5 +396,23 @@ mod tests {
         let bytes = insts[0].to_bytes();
         assert_eq!(bytes.len(), 4);
         assert_eq!(bytes, [11, 5, 0, 0]);
+    }
+
+    #[test]
+    fn test_parse_labels() {
+        let tokens = [
+            Token::LabelDeclaration {
+                value: "label:".to_string(),
+            },
+            Token::LabelUsage {
+                value: "@label".to_string(),
+            },
+        ]
+        .to_vec();
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let insts = insts.unwrap();
+        assert_eq!(insts.len(), 2);
     }
 }

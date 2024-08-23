@@ -80,8 +80,22 @@ impl Lexer {
     pub fn next_token(&mut self) -> Option<Token> {
         self.skip_whitespace();
         match self.current_char {
-            ch if ch.is_alphabetic() => {
-                let word = self.read_word();
+            ch if ch.is_alphabetic() || ch == '@' => {
+                let mut word = self.read_word();
+                let mut chars = word.chars();
+                if let Some(ch) = chars.nth_back(0) {
+                    if ch == ':' {
+                        word.pop();
+                        return Some(Token::LabelDeclaration { value: word });
+                    }
+                }
+                let mut chars = word.chars();
+                if let Some(ch) = chars.nth(0) {
+                    if ch == '@' {
+                        word.remove(0);
+                        return Some(Token::LabelUsage { value: word });
+                    }
+                }
                 match word.as_str() {
                     "load" => Some(Token::Op { code: Opcode::LOAD }),
                     "add" => Some(Token::Op { code: Opcode::ADD }),
@@ -161,7 +175,12 @@ impl Lexer {
 
     pub fn read_word(&mut self) -> String {
         let mut result = String::new();
-        while self.current_char.is_alphabetic() {
+        while self.current_char.is_alphanumeric()
+            || self.current_char == ':'
+            || self.current_char == '_'
+            || self.current_char == '-'
+            || self.current_char == '@'
+        {
             if let Err(_) = write!(&mut result, "{}", self.current_char) {
                 panic!(
                     "Could not add char to the string buffer {}",
@@ -189,7 +208,6 @@ impl Lexer {
 
     fn record_error(&mut self, message: &str) {
         let context = self.get_context();
-        println!("{} {}", self.current_line, self.current_column);
         let err = LexerError::new(message, self.current_line, self.current_column, context);
         self.errors.push(err);
     }
@@ -335,6 +353,36 @@ mod tests {
         assert_eq!(tokens.len(), 2);
         assert_eq!(tokens[0], Token::Op { code: Opcode::DEC });
         assert_eq!(tokens[1], Token::Register { reg_number: 0 });
+    }
+
+    #[test]
+    fn test_tokenize_label_decl() {
+        let mut lx = Lexer::new(
+            r###"
+                test_label:
+                load $1 #10
+                jmp @test_label
+            "###
+            .to_string(),
+        );
+        let result_tokenization = lx.tokenize();
+        assert!(result_tokenization.is_ok());
+        let tokens = result_tokenization.unwrap();
+        assert_eq!(tokens.len(), 7);
+        let expected = [
+            Token::LabelDeclaration {
+                value: "test_label:".to_string(),
+            },
+            Token::Op { code: Opcode::LOAD },
+            Token::Register { reg_number: 1 },
+            Token::IntegerOp { value: 10 },
+            Token::Op { code: Opcode::JMP },
+            Token::LabelUsage {
+                value: "@test_label".to_string(),
+            },
+            Token::Op { code: Opcode::ZERO },
+        ];
+        assert_eq!(tokens, expected.to_vec());
     }
 
     #[test]

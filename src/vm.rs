@@ -40,6 +40,7 @@ impl VM {
         let mut is_done = false;
         while !is_done {
             is_done = self.execute_instrunction();
+            println!("{:?}", self.registers);
         }
     }
 
@@ -79,7 +80,7 @@ impl VM {
                 self.remainder = register1 % register2
             }
             Opcode::JMP => {
-                let target = self.registers[self.get_next_byte() as usize] as usize;
+                let target = self.get_next_byte() as usize;
                 self.program_counter = target;
             }
             Opcode::EQ => {
@@ -89,7 +90,7 @@ impl VM {
                 self.get_next_byte();
             }
             Opcode::JEQ => {
-                let target = self.registers[self.get_next_byte() as usize] as usize;
+                let target = self.get_next_byte() as usize;
                 if self.equality_flag {
                     self.program_counter = target;
                 }
