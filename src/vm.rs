@@ -40,7 +40,6 @@ impl VM {
         let mut is_done = false;
         while !is_done {
             is_done = self.execute_instrunction();
-            println!("{:?}", self.registers)
         }
     }
 
@@ -81,6 +80,8 @@ impl VM {
             }
             Opcode::JMP => {
                 let target = self.get_next_byte() as usize;
+                self.get_next_byte();
+                self.get_next_byte();
                 self.program_counter = target;
             }
             Opcode::EQ => {
@@ -89,14 +90,24 @@ impl VM {
                 self.equality_flag = register1 == register2;
                 self.get_next_byte();
             }
+            Opcode::NEQ => {
+                let register1 = self.registers[self.get_next_byte() as usize];
+                let register2 = self.registers[self.get_next_byte() as usize];
+                self.equality_flag = register1 != register2;
+                self.get_next_byte();
+            }
             Opcode::JEQ => {
                 let target = self.get_next_byte() as usize;
+                self.get_next_byte();
+                self.get_next_byte();
                 if self.equality_flag {
                     self.program_counter = target;
                 }
             }
             Opcode::JNEQ => {
                 let target = self.get_next_byte() as usize;
+                self.get_next_byte();
+                self.get_next_byte();
                 if !self.equality_flag {
                     self.program_counter = target;
                 }
@@ -105,14 +116,20 @@ impl VM {
                 let size = self.registers[self.get_next_byte() as usize];
                 let new_end_heap = self.heap.len() as i32 + size;
                 self.heap.resize(new_end_heap as usize, 0);
+                self.get_next_byte();
+                self.get_next_byte();
             }
             Opcode::INC => {
                 let register = self.get_next_byte() as usize;
                 self.registers[register] += 1;
+                self.get_next_byte();
+                self.get_next_byte();
             }
             Opcode::DEC => {
                 let register = self.get_next_byte() as usize;
                 self.registers[register] -= 1;
+                self.get_next_byte();
+                self.get_next_byte();
             }
             Opcode::ZERO => {
                 return false;
@@ -228,7 +245,7 @@ mod tests {
     #[test]
     fn test_jump_inst() {
         let mut test_vm = VM::new();
-        let test_bytes = vec![6, 0, 0, 0, 0];
+        let test_bytes = vec![6, 0, 0, 0];
         test_vm.program = test_bytes;
         test_vm.execute_instrunction();
         assert_eq!(test_vm.program_counter, 0);
@@ -249,7 +266,7 @@ mod tests {
     fn test_jeq_inst() {
         let mut test_vm = VM::new();
         test_vm.equality_flag = true;
-        let test_bytes = vec![8, 1, 0];
+        let test_bytes = vec![8, 1, 0, 0];
         test_vm.program = test_bytes;
         test_vm.execute_instrunction();
         assert_eq!(test_vm.program_counter, 1);
@@ -259,7 +276,7 @@ mod tests {
     fn test_alloc_inst() {
         let mut test_vm = VM::new();
         test_vm.registers[0] = 32;
-        test_vm.program = [9, 0, 0].to_vec();
+        test_vm.program = [9, 0, 0, 0].to_vec();
         test_vm.run();
         assert_eq!(test_vm.heap.len(), 32);
     }

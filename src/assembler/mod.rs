@@ -53,6 +53,7 @@ impl Assembler {
         for mut i in instructions {
             let inst_to_bytes = i.to_bytes(&self.symbol_table);
             if let Some(inst_to_bytes) = inst_to_bytes {
+                println!("{:?}", inst_to_bytes);
                 for b in inst_to_bytes {
                     bytes.push(b);
                 }

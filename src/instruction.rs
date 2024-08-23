@@ -8,6 +8,7 @@ pub enum Opcode {
     DIV,
     JMP,
     EQ,
+    NEQ,
     JEQ,
     JNEQ,
     ALLOC,
@@ -43,6 +44,7 @@ impl From<Opcode> for u8 {
             Opcode::INC => 10,
             Opcode::DEC => 11,
             Opcode::JNEQ => 12,
+            Opcode::NEQ => 13,
             Opcode::ILLEGAL => panic!("cannot convert to u8 from illegal"),
         }
     }
@@ -64,6 +66,7 @@ impl From<u8> for Opcode {
             10 => Self::INC,
             11 => Self::DEC,
             12 => Self::JNEQ,
+            13 => Self::NEQ,
             _ => Self::ILLEGAL,
         };
     }
