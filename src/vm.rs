@@ -95,6 +95,12 @@ impl VM {
                     self.program_counter = target;
                 }
             }
+            Opcode::JNEQ => {
+                let target = self.get_next_byte() as usize;
+                if !self.equality_flag {
+                    self.program_counter = target;
+                }
+            }
             Opcode::ALLOC => {
                 let size = self.registers[self.get_next_byte() as usize];
                 let new_end_heap = self.heap.len() as i32 + size;

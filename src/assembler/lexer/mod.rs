@@ -105,6 +105,7 @@ impl Lexer {
                     "eq" => Some(Token::Op { code: Opcode::EQ }),
                     "jmp" => Some(Token::Op { code: Opcode::JMP }),
                     "jeq" => Some(Token::Op { code: Opcode::JEQ }),
+                    "jneq" => Some(Token::Op { code: Opcode::JNEQ }),
                     "alloc" => Some(Token::Op {
                         code: Opcode::ALLOC,
                     }),

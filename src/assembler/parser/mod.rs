@@ -21,7 +21,7 @@ impl AssemblyInstruction {
         if let Some(token) = self.opcode.clone() {
             match token {
                 Token::Op { code } => match code {
-                    _ => bytes.push(code as u8),
+                    _ => bytes.push(u8::from(code)),
                 },
 
                 _ => {}
@@ -139,7 +139,7 @@ impl Parser {
                     (op1, op2, None, None)
                 }
             }
-            Opcode::JMP | Opcode::JEQ => {
+            Opcode::JMP | Opcode::JEQ | Opcode::JNEQ => {
                 let op = self.next_token();
                 if !self.check_if_operand(&op) {
                     return Err(format!("unexpected bla bla {:?}", op));
@@ -194,14 +194,9 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::btree_map;
-
     use super::Token;
     use crate::{
-        assembler::{
-            parser::Parser,
-            symbol::{symbol::SymbolType, symbol_table::SymbolTable},
-        },
+        assembler::{parser::Parser, symbol::symbol_table::SymbolTable},
         instruction::Opcode,
     };
 

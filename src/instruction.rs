@@ -9,6 +9,7 @@ pub enum Opcode {
     JMP,
     EQ,
     JEQ,
+    JNEQ,
     ALLOC,
     INC,
     DEC,
@@ -23,6 +24,27 @@ pub struct Instruction {
 impl Instruction {
     pub fn new(op: Opcode) -> Instruction {
         return Instruction { opcode: op };
+    }
+}
+
+impl From<Opcode> for u8 {
+    fn from(value: Opcode) -> Self {
+        match value {
+            Opcode::ZERO => 0,
+            Opcode::LOAD => 1,
+            Opcode::ADD => 2,
+            Opcode::SUB => 3,
+            Opcode::MUL => 4,
+            Opcode::DIV => 5,
+            Opcode::JMP => 6,
+            Opcode::EQ => 7,
+            Opcode::JEQ => 8,
+            Opcode::ALLOC => 9,
+            Opcode::INC => 10,
+            Opcode::DEC => 11,
+            Opcode::JNEQ => 12,
+            Opcode::ILLEGAL => panic!("cannot convert to u8 from illegal"),
+        }
     }
 }
 
@@ -41,6 +63,7 @@ impl From<u8> for Opcode {
             9 => Self::ALLOC,
             10 => Self::INC,
             11 => Self::DEC,
+            12 => Self::JNEQ,
             _ => Self::ILLEGAL,
         };
     }
