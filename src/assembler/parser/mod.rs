@@ -200,259 +200,142 @@ mod tests {
         instruction::Opcode,
     };
 
+    fn parse_and_check(tokens: Vec<Token>, expected_bytes: Option<&[u8]>, expected_len: usize) {
+        let mut parser = Parser::new(tokens);
+        let insts = parser.parse();
+        assert!(insts.is_ok());
+        let mut insts = insts.unwrap();
+        assert_eq!(insts.len(), expected_len);
+        if let Some(expected_bytes) = expected_bytes {
+            let st = SymbolTable::new();
+            let bytes = insts[0].to_bytes(&st);
+            assert!(bytes.is_some());
+            if let Some(bytes) = bytes {
+                assert_eq!(bytes.len(), expected_bytes.len());
+                assert_eq!(bytes, expected_bytes);
+            }
+        }
+    }
+
     #[test]
     fn test_parse_load() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::LOAD },
             Token::Register { reg_number: 1 },
             Token::IntegerOp { value: 10 },
         ];
-        let st = SymbolTable::new();
-        let mut parser = Parser::new(tokens.to_vec());
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [1, 1, 0, 10]);
-        }
+        parse_and_check(tokens, Some(&[1, 1, 0, 10]), 1);
     }
 
     #[test]
     fn test_parse_add() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::ADD },
             Token::Register { reg_number: 2 },
             Token::Register { reg_number: 0 },
             Token::Register { reg_number: 1 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [2, 2, 0, 1])
-        }
+        ];
+        parse_and_check(tokens, Some(&[2, 2, 0, 1]), 1);
     }
 
     #[test]
     fn test_parse_sub() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::SUB },
             Token::Register { reg_number: 2 },
             Token::Register { reg_number: 0 },
             Token::Register { reg_number: 1 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [3, 2, 0, 1])
-        }
+        ];
+        parse_and_check(tokens, Some(&[3, 2, 0, 1]), 1);
     }
 
     #[test]
     fn test_parse_mul() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::MUL },
             Token::Register { reg_number: 2 },
             Token::Register { reg_number: 0 },
             Token::Register { reg_number: 1 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [4, 2, 0, 1])
-        }
+        ];
+        parse_and_check(tokens, Some(&[4, 2, 0, 1]), 1);
     }
 
     #[test]
     fn test_parse_div() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::DIV },
             Token::Register { reg_number: 2 },
             Token::Register { reg_number: 0 },
             Token::Register { reg_number: 1 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [5, 2, 0, 1])
-        }
+        ];
+        parse_and_check(tokens, Some(&[5, 2, 0, 1]), 1);
     }
 
     #[test]
     fn test_parse_jmp() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::JMP },
             Token::Register { reg_number: 10 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [6, 10, 0, 0]);
-        }
+        ];
+        parse_and_check(tokens, Some(&[6, 10, 0, 0]), 1);
     }
 
     #[test]
     fn test_parse_eq() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::EQ },
             Token::Register { reg_number: 1 },
             Token::Register { reg_number: 2 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [7, 1, 2, 0]);
-        }
+        ];
+        parse_and_check(tokens, Some(&[7, 1, 2, 0]), 1);
     }
 
     #[test]
     fn test_parse_jeq() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::JEQ },
             Token::Register { reg_number: 5 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [8, 5, 0, 0]);
-        }
+        ];
+        parse_and_check(tokens, Some(&[8, 5, 0, 0]), 1);
     }
 
     #[test]
     fn test_parse_alloc() {
-        let tokens = [
+        let tokens = vec![
             Token::Op {
                 code: Opcode::ALLOC,
             },
             Token::Register { reg_number: 5 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        assert!(bytes.is_some());
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [9, 5, 0, 0]);
-        }
+        ];
+        parse_and_check(tokens, Some(&[9, 5, 0, 0]), 1);
     }
 
     #[test]
     fn test_parse_inc() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::INC },
             Token::Register { reg_number: 5 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [10, 5, 0, 0]);
-        }
+        ];
+        parse_and_check(tokens, Some(&[10, 5, 0, 0]), 1);
     }
 
     #[test]
     fn test_parse_dec() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::DEC },
             Token::Register { reg_number: 5 },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let mut insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
-        let st = SymbolTable::new();
-        let bytes = insts[0].to_bytes(&st);
-        if let Some(bytes) = bytes {
-            assert_eq!(bytes.len(), 4);
-            assert_eq!(bytes, [11, 5, 0, 0]);
-        }
+        ];
+        parse_and_check(tokens, Some(&[11, 5, 0, 0]), 1);
     }
 
     #[test]
     fn test_parse_labels() {
-        let tokens = [
+        let tokens = vec![
             Token::Op { code: Opcode::JMP },
             Token::LabelUsage {
                 value: "label".to_string(),
             },
-        ]
-        .to_vec();
-        let mut parser = Parser::new(tokens);
-        let insts = parser.parse();
-        assert!(insts.is_ok());
-        let insts = insts.unwrap();
-        assert_eq!(insts.len(), 1);
+        ];
+        parse_and_check(tokens, None, 1);
     }
 }

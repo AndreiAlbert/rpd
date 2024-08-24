@@ -284,7 +284,7 @@ mod tests {
     fn test_inc_inst() {
         let mut test_vm = VM::new();
         test_vm.registers[0] = 68;
-        test_vm.program = [10, 0, 0].to_vec();
+        test_vm.program = [10, 0, 0, 0].to_vec();
         test_vm.run();
         assert_eq!(test_vm.registers[0], 69);
     }
@@ -292,7 +292,7 @@ mod tests {
     fn test_dec_inst() {
         let mut test_vm = VM::new();
         test_vm.registers[0] = 70;
-        test_vm.program = [11, 0, 0].to_vec();
+        test_vm.program = [11, 0, 0, 0].to_vec();
         test_vm.run();
         assert_eq!(test_vm.registers[0], 69);
     }

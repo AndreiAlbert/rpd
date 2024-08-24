@@ -222,174 +222,18 @@ impl Lexer {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_tokenize_load() {
-        let mut lx = Lexer::new("load $1 #10".to_string());
-        let result_tokenization = lx.tokenize();
+    fn tokenize_and_check(input: &str, expected_tokens: &[Token], expected_len: usize) {
+        let mut lexer = Lexer::new(input.to_string());
+        let result_tokenization = lexer.tokenize();
         assert!(result_tokenization.is_ok());
         let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 3);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::LOAD });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-        assert_eq!(tokens[2], Token::IntegerOp { value: 10 });
+        assert_eq!(tokens.len(), expected_len);
+        assert_eq!(tokens, expected_tokens.to_vec());
     }
 
-    #[test]
-    fn test_tokenize_add() {
-        let mut lx = Lexer::new("add $1 $2 $3".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 4);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::ADD });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-        assert_eq!(tokens[2], Token::Register { reg_number: 2 });
-        assert_eq!(tokens[3], Token::Register { reg_number: 3 });
-    }
-
-    #[test]
-    fn test_tokenize_sub() {
-        let mut lx = Lexer::new("sub $1 $2 $3".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 4);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::SUB });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-        assert_eq!(tokens[2], Token::Register { reg_number: 2 });
-        assert_eq!(tokens[3], Token::Register { reg_number: 3 });
-    }
-    #[test]
-    fn test_tokenize_div() {
-        let mut lx = Lexer::new("div $1 $2 $3".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 4);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::DIV });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-        assert_eq!(tokens[2], Token::Register { reg_number: 2 });
-        assert_eq!(tokens[3], Token::Register { reg_number: 3 });
-    }
-    #[test]
-    fn test_tokenize_mul() {
-        let mut lx = Lexer::new("mul $1 $2 $3".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 4);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::MUL });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-        assert_eq!(tokens[2], Token::Register { reg_number: 2 });
-        assert_eq!(tokens[3], Token::Register { reg_number: 3 });
-    }
-
-    #[test]
-    fn test_tokenize_jmp() {
-        let mut lx = Lexer::new("jmp $1".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 2);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::JMP });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-    }
-
-    #[test]
-    fn test_tokenize_eq() {
-        let mut lx = Lexer::new("eq $1 $2".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 3);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::EQ });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-        assert_eq!(tokens[2], Token::Register { reg_number: 2 });
-    }
-
-    #[test]
-    fn test_tokenize_jeq() {
-        let mut lx = Lexer::new("jeq $1".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 2);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::JEQ });
-        assert_eq!(tokens[1], Token::Register { reg_number: 1 });
-    }
-
-    #[test]
-    fn test_tokenize_alloc() {
-        let mut lx = Lexer::new("alloc $0".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 2);
-        assert_eq!(
-            tokens[0],
-            Token::Op {
-                code: Opcode::ALLOC
-            }
-        );
-        assert_eq!(tokens[1], Token::Register { reg_number: 0 });
-    }
-
-    #[test]
-    fn test_tokenize_inc() {
-        let mut lx = Lexer::new("inc $0".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 2);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::INC });
-        assert_eq!(tokens[1], Token::Register { reg_number: 0 });
-    }
-
-    #[test]
-    fn test_tokenize_dec() {
-        let mut lx = Lexer::new("dec $0".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 2);
-        assert_eq!(tokens[0], Token::Op { code: Opcode::DEC });
-        assert_eq!(tokens[1], Token::Register { reg_number: 0 });
-    }
-
-    #[test]
-    fn test_tokenize_label_decl() {
-        let mut lx = Lexer::new(
-            r###"
-                test_label:
-                load $1 #10
-                jmp @test_label
-            "###
-            .to_string(),
-        );
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
-        let tokens = result_tokenization.unwrap();
-        assert_eq!(tokens.len(), 7);
-        let expected = [
-            Token::LabelDeclaration {
-                value: "test_label".to_string(),
-            },
-            Token::Op { code: Opcode::LOAD },
-            Token::Register { reg_number: 1 },
-            Token::IntegerOp { value: 10 },
-            Token::Op { code: Opcode::JMP },
-            Token::LabelUsage {
-                value: "test_label".to_string(),
-            },
-            Token::Op { code: Opcode::ZERO },
-        ];
-        assert_eq!(tokens, expected.to_vec());
-    }
-
-    #[test]
-    fn test_errors() {
-        let mut lx = Lexer::new("load $1 gibrish".to_string());
-        let result_tokenization = lx.tokenize();
+    fn tokenize_and_expect_error(input: &str) {
+        let mut lexer = Lexer::new(input.to_string());
+        let result_tokenization = lexer.tokenize();
         assert!(!result_tokenization.is_ok());
         if let Err(errors) = result_tokenization {
             assert_eq!(errors.len(), 1);
@@ -397,9 +241,176 @@ mod tests {
     }
 
     #[test]
-    fn test_white_space() {
-        let mut lx = Lexer::new("   load $1   ".to_string());
-        let result_tokenization = lx.tokenize();
-        assert!(result_tokenization.is_ok());
+    fn test_tokenize_load() {
+        tokenize_and_check(
+            "load $1 #10",
+            &[
+                Token::Op { code: Opcode::LOAD },
+                Token::Register { reg_number: 1 },
+                Token::IntegerOp { value: 10 },
+            ],
+            3,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_add() {
+        tokenize_and_check(
+            "add $1 $2 $3",
+            &[
+                Token::Op { code: Opcode::ADD },
+                Token::Register { reg_number: 1 },
+                Token::Register { reg_number: 2 },
+                Token::Register { reg_number: 3 },
+            ],
+            4,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_sub() {
+        tokenize_and_check(
+            "sub $1 $2 $3",
+            &[
+                Token::Op { code: Opcode::SUB },
+                Token::Register { reg_number: 1 },
+                Token::Register { reg_number: 2 },
+                Token::Register { reg_number: 3 },
+            ],
+            4,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_div() {
+        tokenize_and_check(
+            "div $1 $2 $3",
+            &[
+                Token::Op { code: Opcode::DIV },
+                Token::Register { reg_number: 1 },
+                Token::Register { reg_number: 2 },
+                Token::Register { reg_number: 3 },
+            ],
+            4,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_mul() {
+        tokenize_and_check(
+            "mul $1 $2 $3",
+            &[
+                Token::Op { code: Opcode::MUL },
+                Token::Register { reg_number: 1 },
+                Token::Register { reg_number: 2 },
+                Token::Register { reg_number: 3 },
+            ],
+            4,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_jmp() {
+        tokenize_and_check(
+            "jmp $1",
+            &[
+                Token::Op { code: Opcode::JMP },
+                Token::Register { reg_number: 1 },
+            ],
+            2,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_eq() {
+        tokenize_and_check(
+            "eq $1 $2",
+            &[
+                Token::Op { code: Opcode::EQ },
+                Token::Register { reg_number: 1 },
+                Token::Register { reg_number: 2 },
+            ],
+            3,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_jeq() {
+        tokenize_and_check(
+            "jeq $1",
+            &[
+                Token::Op { code: Opcode::JEQ },
+                Token::Register { reg_number: 1 },
+            ],
+            2,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_alloc() {
+        tokenize_and_check(
+            "alloc $0",
+            &[
+                Token::Op {
+                    code: Opcode::ALLOC,
+                },
+                Token::Register { reg_number: 0 },
+            ],
+            2,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_inc() {
+        tokenize_and_check(
+            "inc $0",
+            &[
+                Token::Op { code: Opcode::INC },
+                Token::Register { reg_number: 0 },
+            ],
+            2,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_dec() {
+        tokenize_and_check(
+            "dec $0",
+            &[
+                Token::Op { code: Opcode::DEC },
+                Token::Register { reg_number: 0 },
+            ],
+            2,
+        );
+    }
+
+    #[test]
+    fn test_tokenize_label_decl() {
+        tokenize_and_check(
+            r###"
+                test_label:
+                load $1 #10
+                jmp @test_label
+            "###,
+            &[
+                Token::LabelDeclaration {
+                    value: "test_label".to_string(),
+                },
+                Token::Op { code: Opcode::LOAD },
+                Token::Register { reg_number: 1 },
+                Token::IntegerOp { value: 10 },
+                Token::Op { code: Opcode::JMP },
+                Token::LabelUsage {
+                    value: "test_label".to_string(),
+                },
+                Token::Op { code: Opcode::ZERO },
+            ],
+            7,
+        );
+    }
+
+    #[test]
+    fn test_errors() {
+        tokenize_and_expect_error("load $1 gibrish");
     }
 }
