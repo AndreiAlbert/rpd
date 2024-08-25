@@ -1,6 +1,6 @@
 use std::fmt::{Display, Write};
 
-use token::Token;
+use token::{DirectiveType, Token};
 
 use crate::instruction::Opcode;
 
@@ -80,7 +80,13 @@ impl Lexer {
     pub fn next_token(&mut self) -> Option<Token> {
         self.skip_whitespace();
         match self.current_char {
-            ch if ch.is_alphabetic() || ch == '@' => {
+            ch if ch.is_alphabetic() || ch == '@' || ch == '.' || ch == '"' => {
+                if ch == '"' {
+                    let string_literal = self.read_string_literal();
+                    return Some(Token::StringLiteral {
+                        value: string_literal,
+                    });
+                }
                 let mut word = self.read_word();
                 let mut chars = word.chars();
                 if let Some(ch) = chars.nth_back(0) {
@@ -96,7 +102,20 @@ impl Lexer {
                         return Some(Token::LabelUsage { value: word });
                     }
                 }
+                println!("word {}", word);
                 match word.as_str() {
+                    ".asciiz" => Some(Token::Directive {
+                        directive_type: DirectiveType::Asciiz,
+                        literal: ".asciiz".to_string(),
+                    }),
+                    ".code" => Some(Token::Directive {
+                        directive_type: DirectiveType::Code,
+                        literal: ".code".to_string(),
+                    }),
+                    ".data" => Some(Token::Directive {
+                        directive_type: DirectiveType::Data,
+                        literal: ".data".to_string(),
+                    }),
                     "load" => Some(Token::Op { code: Opcode::LOAD }),
                     "add" => Some(Token::Op { code: Opcode::ADD }),
                     "sub" => Some(Token::Op { code: Opcode::SUB }),
@@ -112,11 +131,13 @@ impl Lexer {
                     "inc" => Some(Token::Op { code: Opcode::INC }),
                     "dec" => Some(Token::Op { code: Opcode::DEC }),
                     _ => {
-                        self.record_error(&format!("Unexpected word: {}", word));
+                        self.record_error(&format!("Unexpected word: {:?}", word.into_bytes()));
                         None
                     }
                 }
             }
+
+            '\0' => Some(Token::Op { code: Opcode::ZERO }),
             '$' => {
                 self.read_char();
                 if self.current_char.is_numeric() {
@@ -140,13 +161,23 @@ impl Lexer {
                     None
                 }
             }
-            '\0' => Some(Token::Op { code: Opcode::ZERO }),
             _ => {
                 self.record_error(&format!("Unexpected character: {}", self.current_char));
                 self.read_char();
                 None
             }
         }
+    }
+
+    fn read_string_literal(&mut self) -> String {
+        self.read_char();
+        let mut result = String::new();
+        while self.current_char != '"' {
+            result.push(self.current_char);
+            self.read_char();
+        }
+        self.read_char();
+        return result;
     }
 
     pub fn read_char(&mut self) {
@@ -181,6 +212,8 @@ impl Lexer {
             || self.current_char == '_'
             || self.current_char == '-'
             || self.current_char == '@'
+            || self.current_char == '@'
+            || self.current_char == '.'
         {
             if let Err(_) = write!(&mut result, "{}", self.current_char) {
                 panic!(
@@ -407,6 +440,34 @@ mod tests {
             ],
             7,
         );
+    }
+
+    #[test]
+    fn test_tokenize_directives() {
+        tokenize_and_check(
+            r###"
+                .data
+                string: .asciiz "hello world!"
+            "###,
+            &[
+                Token::Directive {
+                    directive_type: DirectiveType::Data,
+                    literal: ".data".to_string(),
+                },
+                Token::LabelDeclaration {
+                    value: "string".to_string(),
+                },
+                Token::Directive {
+                    directive_type: DirectiveType::Asciiz,
+                    literal: ".asciiz".to_string(),
+                },
+                Token::StringLiteral {
+                    value: "hello world!".to_string(),
+                },
+                Token::Op { code: Opcode::ZERO },
+            ],
+            5,
+        )
     }
 
     #[test]

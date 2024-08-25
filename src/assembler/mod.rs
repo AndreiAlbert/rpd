@@ -41,28 +41,29 @@ impl Assembler {
             Ok(tokens) => tokens,
             Err(errs) => panic!("Lexing error: {:?}", errs),
         };
-        let mut parser = Parser::new(tokens);
-        let instructions = match parser.parse() {
-            Ok(insts) => insts,
-            Err(errors) => {
-                panic!("Parser errors: {:?} ", errors);
-            }
-        };
-        self.extract_labels(&instructions);
-        let mut bytes = vec![];
-        for mut i in instructions {
-            let inst_to_bytes = i.to_bytes(&self.symbol_table);
-            if let Some(inst_to_bytes) = inst_to_bytes {
-                println!("{:?}", inst_to_bytes);
-                for b in inst_to_bytes {
-                    bytes.push(b);
-                }
-            }
-        }
-        println!("{:?}", bytes);
-        let mut vm = VM::new_with_program(bytes);
-        vm.run();
-        println!("{}", vm);
+        println!("tokens are {:?}", tokens);
+        // let mut parser = Parser::new(tokens);
+        // let instructions = match parser.parse() {
+        //     Ok(insts) => insts,
+        //     Err(errors) => {
+        //         panic!("Parser errors: {:?} ", errors);
+        //     }
+        // };
+        // self.extract_labels(&instructions);
+        // let mut bytes = vec![];
+        // for mut i in instructions {
+        //     let inst_to_bytes = i.to_bytes(&self.symbol_table);
+        //     if let Some(inst_to_bytes) = inst_to_bytes {
+        //         println!("{:?}", inst_to_bytes);
+        //         for b in inst_to_bytes {
+        //             bytes.push(b);
+        //         }
+        //     }
+        // }
+        // println!("{:?}", bytes);
+        // let mut vm = VM::new_with_program(bytes);
+        // vm.run();
+        // println!("{}", vm);
     }
 
     //TODO fix this
