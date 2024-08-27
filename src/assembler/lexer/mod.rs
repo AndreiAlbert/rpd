@@ -50,7 +50,7 @@ impl LexerError {
 }
 
 impl Lexer {
-    pub fn new(input: String) -> Lexer {
+    pub fn new(input: &String) -> Lexer {
         let mut lexer = Lexer {
             source: input.chars().collect(),
             current_char: '0',

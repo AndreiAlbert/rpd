@@ -27,7 +27,7 @@ pub enum Token {
     },
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum DirectiveType {
     Code,
     Data,

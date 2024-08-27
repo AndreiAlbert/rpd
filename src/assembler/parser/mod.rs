@@ -1,12 +1,16 @@
 use crate::instruction::Opcode;
 
-use super::{lexer::token::Token, symbol::symbol_table::SymbolTable};
+use super::{
+    lexer::token::{DirectiveType, Token},
+    symbol::symbol_table::SymbolTable,
+};
 
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct AssemblyInstruction {
     opcode: Option<Token>,
     pub label: Option<Token>,
+    directive: Option<Token>,
     operand1: Option<Token>,
     operand2: Option<Token>,
     operand3: Option<Token>,
@@ -98,9 +102,55 @@ impl Parser {
             .next_token()
             .ok_or("expected an opcode but found none")?;
 
+        match token {
+            Token::LabelDeclaration { .. } => {
+                return Ok(AssemblyInstruction {
+                    directive: None,
+                    opcode: None,
+                    operand1: None,
+                    operand2: None,
+                    operand3: None,
+                    label: Some(token),
+                });
+            }
+            Token::Directive { directive_type, .. } => {
+                if directive_type == DirectiveType::Asciiz {
+                    if let Some(string_literla_tok) = self.next_token() {
+                        match string_literla_tok {
+                            Token::StringLiteral { .. } => {
+                                return Ok(AssemblyInstruction {
+                                    directive: Some(token),
+                                    operand3: None,
+                                    operand2: None,
+                                    operand1: Some(string_literla_tok),
+                                    opcode: None,
+                                    label: None,
+                                });
+                            }
+                            _ => {
+                                return Err(format!(
+                                    "Expected string literal after asciiz directive"
+                                ))
+                            }
+                        }
+                    }
+                }
+                return Ok(AssemblyInstruction {
+                    directive: Some(token),
+                    opcode: None,
+                    operand1: None,
+                    operand2: None,
+                    operand3: None,
+                    label: None,
+                });
+            }
+            _ => {}
+        };
+
         if let Token::LabelDeclaration { .. } = token {
             return Ok(AssemblyInstruction {
                 opcode: None,
+                directive: None,
                 operand1: None,
                 operand2: None,
                 operand3: None,
@@ -163,6 +213,7 @@ impl Parser {
             operand2,
             operand3,
             label,
+            directive: None,
         })
     }
 
@@ -196,7 +247,11 @@ impl Parser {
 mod tests {
     use super::Token;
     use crate::{
-        assembler::{parser::Parser, symbol::symbol_table::SymbolTable},
+        assembler::{
+            lexer::token::DirectiveType,
+            parser::{AssemblyInstruction, Parser},
+            symbol::symbol_table::SymbolTable,
+        },
         instruction::Opcode,
     };
 
@@ -337,5 +392,29 @@ mod tests {
             },
         ];
         parse_and_check(tokens, None, 1);
+    }
+
+    #[test]
+    fn test_parse_directives() {
+        let tokens = vec![
+            Token::Directive {
+                directive_type: DirectiveType::Data,
+                literal: ".data".to_string(),
+            },
+            Token::LabelDeclaration {
+                value: "test".to_string(),
+            },
+            Token::Directive {
+                directive_type: DirectiveType::Asciiz,
+                literal: ".asciiz".to_string(),
+            },
+            Token::StringLiteral {
+                value: "goodbye world!".to_string(),
+            },
+        ];
+        let mut parser = Parser::new(tokens);
+        let result_parse = parser.parse();
+        assert!(result_parse.is_ok());
+        todo!();
     }
 }

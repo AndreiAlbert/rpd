@@ -2,6 +2,8 @@ pub mod lexer;
 pub mod parser;
 pub mod symbol;
 
+use core::panicking::panic;
+
 use lexer::{token::Token, Lexer};
 use parser::{AssemblyInstruction, Parser};
 use symbol::{
@@ -11,63 +13,67 @@ use symbol::{
 
 use crate::vm::VM;
 
+pub enum AssemblerSection {
+    Data { starting_offset: Option<u32> },
+    Code { starting_offset: Option<u32> },
+    Unkown,
+}
+
 pub struct Assembler {
+    source: String,
+
     symbol_table: SymbolTable,
+    pub read_only_secion: Vec<u8>,
+
+    pub bytecode: Vec<u8>,
+
+    read_only_offset: u32,
+
+    sections: Vec<AssemblerSection>,
+
+    current_section: Option<AssemblerSection>,
+
+    current_inst: u32,
+    // errros: Vec<String>,
 }
 
 impl Assembler {
-    pub fn new() -> Assembler {
+    pub fn new(source: String) -> Assembler {
         Assembler {
+            source,
             symbol_table: SymbolTable::new(),
+            read_only_secion: vec![],
+            bytecode: vec![],
+            read_only_offset: 0,
+            sections: vec![],
+            current_section: None,
+            current_inst: 0,
         }
     }
 
-    fn extract_labels(&mut self, insts: &Vec<AssemblyInstruction>) {
-        let mut counter = 0;
-        for i in insts {
-            if let Some(label) = &i.label {
-                if let Token::LabelDeclaration { value } = label {
-                    let symbol = Symbol::new(value.to_string(), counter, SymbolType::Label);
-                    self.symbol_table.add_symbol(symbol);
-                }
-            }
-            counter += 4;
-        }
-    }
-
-    pub fn run(&mut self, program: String) {
-        let mut lexer = Lexer::new(program);
-        let tokens = match lexer.tokenize() {
+    fn get_tokens(&mut self) -> Vec<Token> {
+        let mut lexer = Lexer::new(&self.source);
+        match lexer.tokenize() {
             Ok(tokens) => tokens,
-            Err(errs) => panic!("Lexing error: {:?}", errs),
-        };
-        println!("tokens are {:?}", tokens);
-        // let mut parser = Parser::new(tokens);
-        // let instructions = match parser.parse() {
-        //     Ok(insts) => insts,
-        //     Err(errors) => {
-        //         panic!("Parser errors: {:?} ", errors);
-        //     }
-        // };
-        // self.extract_labels(&instructions);
-        // let mut bytes = vec![];
-        // for mut i in instructions {
-        //     let inst_to_bytes = i.to_bytes(&self.symbol_table);
-        //     if let Some(inst_to_bytes) = inst_to_bytes {
-        //         println!("{:?}", inst_to_bytes);
-        //         for b in inst_to_bytes {
-        //             bytes.push(b);
-        //         }
-        //     }
-        // }
-        // println!("{:?}", bytes);
-        // let mut vm = VM::new_with_program(bytes);
-        // vm.run();
-        // println!("{}", vm);
+            Err(errors) => panic!("{:?}", errors),
+        }
     }
 
-    //TODO fix this
-    pub fn parse_to_bytes(_program: String) -> Vec<u8> {
-        todo!();
+    fn get_instructions(&mut self, tokens: Vec<Token>) -> Vec<AssemblyInstruction> {
+        let mut parser = Parser::new(tokens);
+        match parser.parse() {
+            Ok(instructions) => instructions,
+            Err(errros) => panic!("{:?}", errros),
+        }
+    }
+
+    pub fn assemble(&mut self) {
+        let tokens = self.get_tokens();
+        let instructions = self.get_instructions(tokens);
+        self.first_phase(&instructions);
+    }
+
+    pub fn first_phase(&mut self, insts: &Vec<AssemblyInstruction>) {
+        for i in insts {}
     }
 }
